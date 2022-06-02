@@ -1,38 +1,36 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from .models import Picture
+
+
 # Create your views here.
-from .models import *
-import datetime as dt
+
+def posted_pics(request):
+    pics = Picture.objects.all()
+
+    return render(request, 'pic/index.html', {"pics": pics})
 
 
-
-
-def home(request):
-    locations = Location.get_all()
-    return render(request, 'home.html',{'locations':locations})
-
-def gallery(request):
-    return render(request, 'all-photos/gallery.html')
-
-def show(request):
-    images = Image.get_images()
-    return render(request, 'show.html',{'images':images})
-
-def search(request):
-    title = Category.name
-    if 'image' in request.GET and request.GET["image"]:
-        search_term = request.GET.get("image")
-        searched_images = Image.search_images(search_term)
-        message = f"{search_term}"
-        # print(searched_images)
-        return render(request, 'search.html',{"message":message,"searched_images": searched_images,'title':title})
-    
-
+def search_results(request):
+    if request.method == 'POST':
+        searched = request.POST.get('searched')
+        name = Picture.objects.filter(name__contains=searched)
+        return render(request, 'pic/search.html',{'searched':searched,'name':name,})
+  
 
     else:
-        message = "No term was searched "
-        return render(request, 'search.html',{"message":message})
+        message = "You have not searched for any picture"
+        return render(request, 'pic/search.html', {"message": message})
 
-def location(request,locale):
-    images = Image.filter_by_location(locale)
-    return render(request, 'location.html', {'images':images})
+
+  # if 'category' in request.GET and request.GET["category"]:
+    #     searched_term = request.GET.get("category")
+    #     searched_pictures = Picture.search_by_title(searched_term)
+    #     message = f"{searched_term}"
+
+    #     return render(request, 'pic/search.html', {"message": message, "pictures": searched_pictures})
+def big_image(request,pic_id):
+    image=Picture().objects.get(pk=pic_id)
+    return render(request, 'pic/bigimage.html',{'image':image})
+
+    

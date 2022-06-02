@@ -1,11 +1,11 @@
-from django.urls import path,re_path
+from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
+
 
 urlpatterns = [
-    path('',views.home, name='home'),
-    path('home/',views.home, name='home'),
-    path('show/', views.show, name='show'),
-    path('search/', views.search, name='searchResults'),
-    re_path('^location/(?P<locale>\w+)/', views.location, name='location'),
-]
-
+    path('', views.posted_pics, name='Home'),
+    path('big_image/<pic_id>', views.big_image, name="big_image"),
+    path('search/', views.search_results, name='search_results')
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

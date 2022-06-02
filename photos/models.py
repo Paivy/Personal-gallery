@@ -1,138 +1,58 @@
 from django.db import models
-from unicodedata import name
-import datetime as dt
-
+from imagekit.models import ProcessedImageField
+from imagekit.processors import ResizeToFill
 # Create your models here.
 
 
-class Image(models.Model):
-    image = models.ImageField(upload_to ='images/',null=True)
-    image_name = models.CharField(max_length=60)
-    image_description = models.TextField()
-    image_location = models.ForeignKey('Location', on_delete=models.SET_NULL, null=True)
-    image_category = models.ForeignKey('Category', on_delete=models.CASCADE,)
-    pub_date = models.DateTimeField(auto_now_add=True)
+class Category(models.Model):
+    name = models.CharField(max_length=30)
 
+    @property
+    def preview(self):
+        first = self.images.last()
+        return first.image.url
 
     def __str__(self):
-        return self.image_name
-    
-    def save_image(self):
-        self.save()
-        
-    def delete_image(self):
-        self.delete()
-    
-    def update_image(self, new_image):
-        try:
-            self.image = new_image
-            self.save()
-            return self
-        except self.DoesNotExist:
-            print('Images already exists')
-    
-    @classmethod
-    def get_image_by_id(cls, id):
-        '''
-        method to retrieve images by unique id
-        '''
-        retrieved = Image.objects.get(id = id)
-        return retrieved
-    
-    @classmethod
-    def get_images(cls):
-        images = cls.objects.all()
-        return images
-    
-    @classmethod
-    def today_images(cls):
-        today = dt.date.today()
-        images = cls.objects.filter(pub_date__date=today)
-        return images
-        
-    @classmethod
-    def get_latest(cls):
-        images = cls.objects.last()
-        return images
-    
-    @classmethod
-    def search_images(cls, search_term):
-        images = cls.objects.filter(image_category__name__icontains=search_term)
-        return images
-
-    @classmethod
-    def filter_by_location(cls, location):
-        images = cls.objects.filter(image_location__name__icontains=location).all()
-        return images
-
-
+        return self.name
 
 
 class Location(models.Model):
-    name = models.CharField(max_length=40)
+    name = models.CharField(max_length=30)
 
-    @classmethod
-    def get_all(cls):
-        '''
-        method to retrive all stored locations
-        '''
-        loc = Location.objects.all()
-        return loc
-    
     def __str__(self):
         return self.name
-    
-    def save_location(self):
-        self.save()
-        
-    def delete_location(self):
-            self.delete()
-    
-     
+
+
+
+class Picture(models.Model):
+    name = models.CharField(max_length=50,null=True,blank=True)
+    pub_date = models.DateTimeField(auto_now_add=True)
+    location = models.ForeignKey(
+        Location, related_name="images", on_delete=models.CASCADE,default='')
+    description = models.TextField(blank=True)
+    image = ProcessedImageField(upload_to='avatars',
+                                           processors=[ResizeToFill(100, 50)],
+                                           format='JPEG',
+                                           options={'quality': 60})
+    category = models.ForeignKey(
+        Category, related_name="images", null=False, on_delete=models.CASCADE)
+
     @classmethod
-    def update_location(cls, search_term , new_locale):
-        '''
-        method to update a location's city name
-        '''
-        try:
-            to_update = Location.objects.get(name = search_term)
-            to_update.name = new_locale
-            to_update.save()
-            return to_update
-        except Location.DoesNotExist:
-            print('Location you specified does not exist')
+    def search_by_title(cls, search_term):
+        image = cls.objects.filter(description__contains=search_term)
 
+        return image
 
-class Category(models.Model):
-     categories =(
-         ('Travel', 'Travel'),
-         ('Food', 'Food'),
-         ('Design', 'Design'),
-     )
-     name = models.CharField(max_length=50, choices=categories)
+    @classmethod
+    def get_image_by_id(cls, id):
+        return cls.objects.get(pk=id)
 
-     def __str__(self):
-        return self.name
-    
-     def save_category(self):
-            self.save()
-    
-     def delete_category(self):
-            self.delete()
-    
-     @classmethod
-     def update_category(cls, search_term , new_cat):
-        '''
-        method to update a category
-        '''
-        try:
-            to_update = Category.objects.get(name = search_term)
-            to_update.name = new_cat
-            to_update.save()
-            return to_update
-        except Category.DoesNotExist:
-            print('Category you specified does not exist')
-
-
-
- 
+    @property
+    def allinfo(self):
+        info = {
+            'cat': self.category,
+            'desc': self.description,
+            'image': self.image.url,
+            'id': self.id
+        }
+        return str(info)

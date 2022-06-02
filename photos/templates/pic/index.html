@@ -1,0 +1,102 @@
+{%extends 'pic/base.html'%} {% block content %}
+
+<div class="album py-5 bg-light">
+  <div class="container">
+    <div class="row">
+      {% for pic in pics %} {% with go=pic.allinfo %}
+      <div class="col-md-4">
+        <div class="card mb-4 shadow-sm">
+          <img
+            src="{{pic.image.url}}"
+            alt=""
+            class="card-img-top"
+            width="100%"
+            height="225"
+          />
+          <div class="card-body">
+            <p class="card-text">{{ pic.description }}</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="btn-group">
+                <!-- Button trigger modal -->
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#exampleModal{{pic.id}}"
+                >
+                  View
+                </button>
+              </div>
+              <small class="text-muted">{{pic.pub_date}}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal -->
+      <div
+        class="modal fade"
+        id="exampleModal{{pic.id}}"
+        tabindex="-1"
+        aria-labelledby="exampleModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+          <div class="modal-content bg-secondary">
+            <div class="modal-header">
+              <h4 class="modal-title" id="imagetitle"></h4>
+              <button
+                type="button"
+                class="close"
+                data-bs-dismiss="modal"
+                aria-hidden="true"
+              >
+                &times;
+              </button>
+            </div>
+            <div class="modal-body" style="text-align: center">
+              <img
+                id="imageimage"
+                class="figure-img img-fluid rounded"
+                src="{{pic.image.url}}"
+              />
+              <p id="imagedescription">{{ pic.description }}</p>
+            </div>
+            <div class="modal-footer">
+              <input
+                type="text"
+                value="{{pic.image.url}}"
+                id="imagedirectlink"
+              />
+              <button type="button" class="btn btn-success" onclick="copy()">
+                Copy Link
+              </button>
+              <a
+                href="{% url 'big_image' pic.id %}"
+                class="btn btn-outline-secondary btn-sm"
+              >
+                View Image
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endwith %} {% empty %}
+
+      <h3 class="text-center">Photos to be posted soon</h3>
+
+      {%endfor%}
+    </div>
+  </div>
+</div>
+{% for pic in pics %}
+<div
+  id="pic"
+  class="modal fade"
+  tabindex="-1"
+  role="dialog"
+  aria-labelledby="exampleModalLabel"
+  aria-hidden="true"
+></div>
+
+{%endfor%}{% endblock %}
